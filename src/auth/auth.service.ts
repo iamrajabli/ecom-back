@@ -25,16 +25,11 @@ export class AuthService implements IAuthService {
   ) {}
 
   async auth(dto: AuthUserDto): Promise<UserResponse> {
-    try {
-      const user = await this.validateUser(dto);
-
-      return {
-        user: this.generateUserFields(user),
-        tokens: this.generateTokens(user.id),
-      };
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
-    }
+    const user = await this.validateUser(dto);
+    return {
+      user: this.generateUserFields(user),
+      tokens: this.generateTokens(user.id),
+    };
   }
 
   async createUser(dto: CreateUserDto): Promise<UserResponse> {
@@ -100,8 +95,6 @@ export class AuthService implements IAuthService {
   }
 
   async generateNewTokens(refreshToken: string): Promise<UserResponse> {
-    console.log(refreshToken);
-
     try {
       const result = (await this.jwtService.verifyAsync(refreshToken)) as Pick<
         UserDocument,
