@@ -1,9 +1,12 @@
 import { CurrentUser } from '@/auth/decorators/current-user.decorator';
+import { Role } from '@/auth/enums/role.enum';
 import { JwtAuthGuard } from '@/auth/guards/auth.guard';
+import { RoleGuard } from '@/auth/guards/roles.guard';
 import { User } from '@/auth/schemas/user.schema';
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
@@ -16,6 +19,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { IUserController } from './interfaces/user.controller.interface';
 import { ProfileResponse } from './types/user.types';
 import { UserService } from './user.service';
+import { Roles } from '@/auth/decorators/roles.decorator';
 
 @Controller('user')
 export class UserController implements IUserController {
@@ -27,17 +31,8 @@ export class UserController implements IUserController {
     return user;
   }
 
-  @Get(':username')
-  async user(@Param('username') username: string) {
-    return this.userService.getUser(username);
-  }
-
-  @Get('')
-  async users() {
-    return this.userService.getUsers();
-  }
-
-  @UseGuards(JwtAuthGuard)
+  @Roles(Role.Admin)
+  @UseGuards(JwtAuthGuard, RoleGuard)
   @UsePipes(new ValidationPipe())
   @Patch('profile')
   async updateProfile(
@@ -51,5 +46,33 @@ export class UserController implements IUserController {
   @Patch('profile/disable')
   async disableProfile(@CurrentUser('id') id: Types.ObjectId) {
     return this.userService.disableProfile(id);
+  }
+
+  @Roles(Role.Admin)
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @Delete(':id')
+  async delete(@Param('id') id: Types.ObjectId) {
+    return await this.userService.deleteUser(id);
+  }
+
+  @Roles(Role.Admin)
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @Patch('role/:id')
+  async role(@Param('id') id: Types.ObjectId, @Body('role') role: Role) {
+    return await this.userService.changeRole(id, role);
+  }
+
+  @Roles(Role.Admin)
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @Get()
+  async users() {
+    return await this.userService.getUsers();
+  }
+
+  @Roles(Role.Admin)
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @Get(':id')
+  async user(@Param('id') id: Types.ObjectId) {
+    return await this.userService.getUser(id);
   }
 }

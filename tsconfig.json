@@ -15,8 +15,7 @@
       "@auth/*": ["./auth/*"],
       "@user/*": ["./user/*"],
       "@category/*": ["./category/*"],
-      "@book/*": ["./book/*"],
-      "@admin/*": ["./admin/*"],
+      "@book/*": ["./book/*"]
     },
     "incremental": true,
     "skipLibCheck": true,

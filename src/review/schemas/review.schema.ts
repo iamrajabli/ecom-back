@@ -1,14 +1,14 @@
 import { HydratedDocument, Types } from 'mongoose';
 import { Prop, SchemaFactory, Schema } from '@nestjs/mongoose';
-import { Book } from './book.schema';
 import { User } from '@/auth/schemas/user.schema';
+import { Book } from '@/book/schemas/book.schema';
 
-export type CommentDocument = HydratedDocument<Comment>;
+export type ReviewDocument = HydratedDocument<Review>;
 
 @Schema()
-export class Comment {
-  @Prop()
-  text: string;
+export class Review {
+  @Prop({ required: true })
+  star: number;
 
   @Prop({ type: Types.ObjectId, ref: 'Book' })
   book: Book;
@@ -17,4 +17,4 @@ export class Comment {
   user: User;
 }
 
-export const CommentSchema = SchemaFactory.createForClass(Comment);
+export const ReviewSchema = SchemaFactory.createForClass(Review);

@@ -1,42 +1,18 @@
+import { Role } from '@/auth/enums/role.enum';
 import { User, UserDocument } from '@/auth/schemas/user.schema';
+import { ProccessResponse } from '@/types';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { IUserService } from './interfaces/user.service.interface';
-import { ProfileResponse, UserResponse } from './types/user.types';
+import { ProfileResponse } from './types/user.types';
 
 @Injectable()
 export class UserService implements IUserService {
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
   ) {}
-
-  async getUser(username: string): Promise<UserResponse> {
-    try {
-      const user = (await this.userModel.findOne({ username })) as User & {
-        createdAt: Date;
-      };
-
-      if (!user) {
-        throw new HttpException('User not found.', HttpStatus.NOT_FOUND);
-      }
-
-      return this.generateUserFields(user);
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
-    }
-  }
-
-  async getUsers(): Promise<UserResponse[]> {
-    try {
-      const users = await this.userModel.find().exec();
-
-      return users?.map(this.generateUserFields);
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
-    }
-  }
 
   async updateProfile(
     id: Types.ObjectId,
@@ -69,9 +45,64 @@ export class UserService implements IUserService {
     }
   }
 
-  generateUserFields(user: User): UserResponse {
-    const { name, gender, createdAt, username } = user;
+  async deleteUser(id: Types.ObjectId): Promise<ProccessResponse> {
+    try {
+      const user = await this.userModel.findById(id);
 
-    return { name, gender, createdAt, username };
+      if (!user) {
+        throw new HttpException('User not found.', HttpStatus.NOT_FOUND);
+      }
+
+      await user.remove();
+
+      return {
+        message: 'User successfully deleted',
+        success: true,
+      };
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  async changeRole(id: Types.ObjectId, role: Role): Promise<ProccessResponse> {
+    try {
+      const user = await this.userModel.findById(id);
+
+      if (!user) {
+        throw new HttpException('User not found.', HttpStatus.NOT_FOUND);
+      }
+
+      user.roles = role === 'user' ? [Role.User] : [Role.User, role];
+      await user.save();
+
+      return {
+        message: 'User role successfully changed',
+        success: true,
+      };
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  async getUsers(): Promise<User[]> {
+    try {
+      return await this.userModel.find().select('-password').exec();
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  async getUser(id: Types.ObjectId): Promise<User> {
+    try {
+      const user = await this.userModel.findById(id).select('-password');
+
+      if (!user) {
+        throw new HttpException('User not found.', HttpStatus.NOT_FOUND);
+      }
+
+      return user;
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    }
   }
 }

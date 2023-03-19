@@ -1,6 +1,9 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
+import { Languages } from '@book/enums/book.enums';
 import { Comment } from './comment.schema';
+import { Wishlist } from '@/wishlist/schemas/wishlist.schema';
+import { Review } from '@/review/schemas/review.schema';
 
 export type BookDocument = HydratedDocument<Book>;
 
@@ -8,6 +11,9 @@ export type BookDocument = HydratedDocument<Book>;
 export class Book {
   @Prop({ required: true })
   title: string;
+
+  @Prop()
+  slug: string;
 
   @Prop({ required: true })
   author: string;
@@ -36,11 +42,17 @@ export class Book {
   @Prop({ required: true })
   photo: string;
 
+  @Prop({ required: true })
+  language: Languages;
+
   @Prop([{ type: Types.ObjectId, ref: 'Comment' }])
   comment: Comment[];
 
-  @Prop()
-  review: number;
+  @Prop([{ type: Types.ObjectId, ref: 'Comment' }])
+  wishlist: Wishlist[];
+
+  @Prop([{ type: Types.ObjectId, ref: 'Comment' }])
+  review: Review[];
 
   @Prop()
   sold: number;

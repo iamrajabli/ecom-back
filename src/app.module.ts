@@ -6,7 +6,10 @@ import { mongodbConfig } from './config/mongodb.config';
 import { UserModule } from './user/user.module';
 import { BookModule } from './book/book.module';
 import { CategoryModule } from './category/category.module';
-import { AdminModule } from './admin/admin.module';
+import { ReviewModule } from './review/review.module';
+import { CommentModule } from './comment/comment.module';
+import { CartModule } from './cart/cart.module';
+import { WishlistModule } from './wishlist/wishlist.module';
 
 @Module({
   imports: [
@@ -19,7 +22,10 @@ import { AdminModule } from './admin/admin.module';
     UserModule,
     BookModule,
     CategoryModule,
-    AdminModule,
+    ReviewModule,
+    CommentModule,
+    CartModule,
+    WishlistModule,
   ],
   controllers: [],
   providers: [],

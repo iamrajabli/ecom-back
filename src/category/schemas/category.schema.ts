@@ -13,7 +13,7 @@ export class Category {
   description: string;
 
   @Prop([{ type: Types.ObjectId, ref: 'Book' }])
-  book: Book[];
+  books: Book[];
 }
 
 export const CategorySchema = SchemaFactory.createForClass(Category);
