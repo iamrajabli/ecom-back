@@ -1,4 +1,4 @@
-export type ProccessResponse = {
+export type ProcessResponse = {
   success: boolean;
   message: string;
 };

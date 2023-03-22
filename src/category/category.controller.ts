@@ -11,6 +11,8 @@ import {
   Post,
   Put,
   UseGuards,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import { Types } from 'mongoose';
 import { CategoryService } from './category.service';
@@ -23,11 +25,13 @@ import { ICategoryController } from './interfaces/category.controller.interface'
 export class CategoryController implements ICategoryController {
   constructor(private readonly categoryService: CategoryService) {}
 
+  @UsePipes(new ValidationPipe())
   @Post()
   async create(@Body() dto: CategoryDto) {
     return await this.categoryService.createCategory(dto);
   }
 
+  @UsePipes(new ValidationPipe())
   @Put(':id')
   async update(@Param('id') id: Types.ObjectId, @Body() dto: CategoryDto) {
     return await this.categoryService.updateCategory(id, dto);
@@ -46,5 +50,10 @@ export class CategoryController implements ICategoryController {
   @Get(':id')
   async category(@Param('id') id: Types.ObjectId) {
     return await this.categoryService.getCategory(id);
+  }
+
+  @Post('seeder/:count')
+  async seeder(@Param('count') count: number) {
+    return await this.categoryService.seeder(count);
   }
 }

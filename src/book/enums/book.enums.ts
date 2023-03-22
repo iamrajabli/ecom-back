@@ -5,3 +5,8 @@ export enum Languages {
   RU = 'ru',
   UA = 'ua',
 }
+
+export enum PriceSort {
+  ASC = 'asc',
+  DESC = 'desc',
+}

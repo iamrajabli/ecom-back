@@ -7,9 +7,8 @@ import { UserModule } from './user/user.module';
 import { BookModule } from './book/book.module';
 import { CategoryModule } from './category/category.module';
 import { ReviewModule } from './review/review.module';
-import { CommentModule } from './comment/comment.module';
-import { CartModule } from './cart/cart.module';
 import { WishlistModule } from './wishlist/wishlist.module';
+import { OrderModule } from './order/order.module';
 
 @Module({
   imports: [
@@ -23,9 +22,8 @@ import { WishlistModule } from './wishlist/wishlist.module';
     BookModule,
     CategoryModule,
     ReviewModule,
-    CommentModule,
-    CartModule,
     WishlistModule,
+    OrderModule,
   ],
   controllers: [],
   providers: [],

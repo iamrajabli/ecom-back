@@ -1,15 +1,15 @@
-import { ProccessResponse } from '@/types';
+import { ProcessResponse } from '@/types';
 import { Types } from 'mongoose';
 
 export interface IWishlistService {
   addToWishlist(
     userId: Types.ObjectId,
     bookId: Types.ObjectId,
-  ): Promise<ProccessResponse>;
+  ): Promise<ProcessResponse>;
   removeFromWishlist(
     userId: Types.ObjectId,
     bookId: Types.ObjectId,
-  ): Promise<ProccessResponse>;
+  ): Promise<ProcessResponse>;
 
-  removeWishlist(userId: Types.ObjectId): Promise<ProccessResponse>;
+  removeWishlist(userId: Types.ObjectId): Promise<ProcessResponse>;
 }

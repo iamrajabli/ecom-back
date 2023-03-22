@@ -112,7 +112,7 @@ export class AuthService implements IAuthService {
   generateTokens(id: ObjectId): Tokens {
     const data = { id };
 
-    const accessToken = this.jwtService.sign(data, { expiresIn: '1h' });
+    const accessToken = this.jwtService.sign(data, { expiresIn: '10h' });
     const refreshToken = this.jwtService.sign(data, { expiresIn: '7d' });
 
     return { accessToken, refreshToken };

@@ -12,7 +12,7 @@ export class Category {
   @Prop()
   description: string;
 
-  @Prop([{ type: Types.ObjectId, ref: 'Book' }])
+  @Prop({ type: [{ type: Types.ObjectId, ref: 'Book' }] })
   books: Book[];
 }
 

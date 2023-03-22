@@ -7,14 +7,17 @@ export type ReviewDocument = HydratedDocument<Review>;
 
 @Schema()
 export class Review {
-  @Prop({ required: true })
+  @Prop({ enum: [1, 2, 3, 4, 5] })
   star: number;
 
+  @Prop()
+  comment: string;
+
   @Prop({ type: Types.ObjectId, ref: 'Book' })
-  book: Book;
+  bookId: Book;
 
   @Prop({ type: Types.ObjectId, ref: 'User' })
-  user: User;
+  userId: User;
 }
 
 export const ReviewSchema = SchemaFactory.createForClass(Review);

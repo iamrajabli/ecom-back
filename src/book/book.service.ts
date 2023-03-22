@@ -1,5 +1,5 @@
 import { Category, CategoryDocument } from '@/category/schemas/category.schema';
-import { ProccessResponse } from '@/types';
+import { ProcessResponse } from '@/types';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
@@ -8,6 +8,8 @@ import { CreateBookDto } from './dto/create-book.dto';
 import { UpdateBookDto } from './dto/update-book.dto';
 import { IBookService } from './interfaces/book.controller.service';
 import { Book, BookDocument } from './schemas/book.schema';
+import { faker } from '@faker-js/faker';
+import { QueryBookDto } from './dto/query-book.dto';
 
 @Injectable()
 export class BookService implements IBookService {
@@ -62,7 +64,7 @@ export class BookService implements IBookService {
     }
   }
 
-  async changeVisibilityMany(ids: Types.ObjectId[]): Promise<ProccessResponse> {
+  async changeVisibilityMany(ids: Types.ObjectId[]): Promise<ProcessResponse> {
     try {
       const filter = { id: { $in: ids } };
 
@@ -98,7 +100,7 @@ export class BookService implements IBookService {
     }
   }
 
-  async deleteBook(id: Types.ObjectId): Promise<ProccessResponse> {
+  async deleteBook(id: Types.ObjectId): Promise<ProcessResponse> {
     try {
       const book = await this.bookService.findById(id);
 
@@ -126,9 +128,48 @@ export class BookService implements IBookService {
     }
   }
 
-  async getBooks(): Promise<Book[]> {
+  async getBooks({
+    limit = 20,
+    max,
+    min = 0,
+    offset,
+    query,
+    categoryId,
+    priceSort,
+    author,
+  }: QueryBookDto): Promise<Book[]> {
     try {
-      return await this.bookService.find({ isShow: true }).exec();
+      const priceFilter = { price: { $gte: min } };
+      const categoryFilter = {};
+      const searchFilter = { title: { $regex: new RegExp(query, 'i') } };
+      const authorFilter = { author: { $regex: new RegExp(author, 'i') } };
+      let sortConfig = {};
+
+      const filterConfig = () => {
+        // if have max then priceFilter must be => { price: { $gte: xxx, $lte: xxx } }
+        max ? (priceFilter.price['$lte'] = max) : null;
+
+        // if have categoryId then categoryFilter must be => { categoryId: { $eq: "xxx" } }
+        categoryId ? (categoryFilter['category'] = { $eq: categoryId }) : null;
+
+        return {
+          ...categoryFilter,
+          ...priceFilter,
+          ...searchFilter,
+          ...authorFilter,
+        };
+      };
+
+      if (priceSort) {
+        sortConfig = { price: priceSort === 'asc' ? 1 : -1 };
+      }
+
+      return await this.bookService
+        .find({ isShow: true, ...filterConfig() })
+        .skip(offset)
+        .sort(sortConfig)
+        .limit(limit)
+        .exec();
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
@@ -164,6 +205,39 @@ export class BookService implements IBookService {
       return book;
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  async seeder(count: number) {
+    const categories = await this.categoryService.find().exec();
+
+    for (let i = 0; i < count; i++) {
+      const book = {
+        title: faker.commerce.productName(),
+        slug: slugify(faker.commerce.productName()).toLowerCase(),
+        author: faker.name.firstName(),
+        publisher: faker.company.name(),
+        publishingYear:
+          new Date().getFullYear() - Math.floor(Math.random() * 20),
+        description: faker.commerce.productDescription(),
+        price: Number(faker.commerce.price()),
+        oldPrice: Number(faker.commerce.price()) + 500,
+        stock: Number(faker.commerce.price()),
+        category: categories[Math.floor(Math.random() * categories.length)].id,
+        photo: faker.image.imageUrl(),
+        language: ['az', 'en', 'ru', 'tr', 'gr'][Math.floor(Math.random() * 4)],
+        isShow: true,
+      };
+
+      const createdBook = await this.bookService.create(book);
+
+      const category = await this.categoryService.findById(
+        createdBook.category,
+      );
+
+      category.books.push(createdBook.id);
+
+      await category.save();
     }
   }
 }

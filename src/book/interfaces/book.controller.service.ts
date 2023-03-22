@@ -1,8 +1,9 @@
-import { ProccessResponse } from '@/types';
+import { ProcessResponse } from '@/types';
 import { CreateBookDto } from '@book/dto/create-book.dto';
 import { Types } from 'mongoose';
-import { UpdateBookDto } from '../dto/update-book.dto';
+import { UpdateBookDto } from '@book/dto/update-book.dto';
 import { Book } from '@book/schemas/book.schema';
+import { QueryBookDto } from '@book/dto/query-book.dto';
 
 export interface IBookService {
   createBook(dto: CreateBookDto): Promise<Book>;
@@ -11,11 +12,11 @@ export interface IBookService {
 
   changeVisibility(id: Types.ObjectId): Promise<Book>;
 
-  changeVisibilityMany(ids: Types.ObjectId[]): Promise<ProccessResponse>;
+  changeVisibilityMany(ids: Types.ObjectId[]): Promise<ProcessResponse>;
 
-  deleteBook(id: Types.ObjectId): Promise<ProccessResponse>;
+  deleteBook(id: Types.ObjectId): Promise<ProcessResponse>;
 
-  getBooks(): Promise<Book[]>;
+  getBooks(dto: QueryBookDto): Promise<Book[]>;
 
   getBook(slug: string): Promise<Book>;
 

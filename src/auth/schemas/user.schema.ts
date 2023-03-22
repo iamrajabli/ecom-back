@@ -1,7 +1,9 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument } from 'mongoose';
+import { HydratedDocument, Types } from 'mongoose';
 import { Gender } from '@auth/enums/gender.enum';
 import { Role } from '@auth/enums/role.enum';
+import { Review } from '@/review/schemas/review.schema';
+import { Order } from '@/order/schemas/order.schema';
 
 export type UserDocument = HydratedDocument<User>;
 
@@ -39,17 +41,17 @@ export class User {
   })
   roles: Role[];
 
-  @Prop()
-  order: string[];
+  @Prop({ type: [{ type: Types.ObjectId, ref: 'Order' }] })
+  order: Order[];
 
   @Prop()
   wishlist: string[];
 
-  @Prop()
-  cart: string[];
-
   @Prop({ default: false })
   isDisabled: boolean;
+
+  @Prop({ type: [{ type: Types.ObjectId, ref: 'Review' }] })
+  review: Review[];
 
   createdAt: Date;
   updatedAt: Date;

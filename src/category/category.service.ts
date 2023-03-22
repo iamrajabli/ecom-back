@@ -1,4 +1,5 @@
-import { ProccessResponse } from '@/types';
+import { ProcessResponse } from '@/types';
+import { faker } from '@faker-js/faker';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
@@ -38,7 +39,7 @@ export class CategoryService implements ICategoryService {
     }
   }
 
-  async deleteCategory(id: Types.ObjectId): Promise<ProccessResponse> {
+  async deleteCategory(id: Types.ObjectId): Promise<ProcessResponse> {
     try {
       const category = await this.categoryService.findById(id);
       if (!category) {
@@ -72,5 +73,21 @@ export class CategoryService implements ICategoryService {
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
+  }
+
+  async seeder(count: number) {
+    for (let i = 0; i < count; i++) {
+      const category = {
+        name: faker.internet.userName(),
+        description: faker.commerce.productDescription(),
+      };
+
+      await this.categoryService.create(category);
+    }
+
+    return {
+      message: `Seeder created ${count} categories`,
+      success: true,
+    };
   }
 }

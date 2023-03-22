@@ -1,6 +1,6 @@
 import { User, UserDocument } from '@/auth/schemas/user.schema';
 import { Book, BookDocument } from '@/book/schemas/book.schema';
-import { ProccessResponse } from '@/types';
+import { ProcessResponse } from '@/types';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
@@ -18,7 +18,7 @@ export class WishlistService implements IWishlistService {
   async addToWishlist(
     userId: Types.ObjectId,
     bookId: Types.ObjectId,
-  ): Promise<ProccessResponse> {
+  ): Promise<ProcessResponse> {
     try {
       const user = await this.userService.findById(userId);
 
@@ -66,7 +66,7 @@ export class WishlistService implements IWishlistService {
   async removeFromWishlist(
     userId: Types.ObjectId,
     bookId: Types.ObjectId,
-  ): Promise<ProccessResponse> {
+  ): Promise<ProcessResponse> {
     try {
       const book = await this.bookService.findOne({
         _id: bookId,
@@ -93,7 +93,7 @@ export class WishlistService implements IWishlistService {
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
   }
-  async removeWishlist(userId: Types.ObjectId): Promise<ProccessResponse> {
+  async removeWishlist(userId: Types.ObjectId): Promise<ProcessResponse> {
     try {
       const user = await this.userService.findById(userId);
 
