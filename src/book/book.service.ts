@@ -5,7 +5,7 @@ import { Model, Types } from 'mongoose';
 import slugify from 'slugify';
 import { CreateBookDto } from './dto/create-book.dto';
 import { UpdateBookDto } from './dto/update-book.dto';
-import { IBookService } from './interfaces/book.controller.service';
+import { IBookService } from './interfaces/book.service.interface';
 import { Book, BookDocument } from './schemas/book.schema';
 import { faker } from '@faker-js/faker';
 import { QueryBookDto } from './dto/query-book.dto';
@@ -147,8 +147,12 @@ export class BookService implements IBookService {
     offset,
     query,
     categoryId,
-    priceSort,
+    price,
     author,
+    rated,
+    trending,
+    bestseller,
+    featured,
   }: QueryBookDto) {
     try {
       const priceFilter = { price: { $gte: min } };
@@ -172,8 +176,25 @@ export class BookService implements IBookService {
         };
       };
 
-      if (priceSort) {
-        sortConfig = { price: priceSort === 'asc' ? 1 : -1 };
+      // sorting
+      if (price) {
+        sortConfig = { ...sortConfig, price: price === 'asc' ? 1 : -1 };
+      }
+
+      if (trending) {
+        sortConfig['view'] = -1;
+      }
+
+      if (bestseller) {
+        sortConfig['sold'] = -1;
+      }
+
+      if (featured) {
+        sortConfig['createdAt'] = -1;
+      }
+
+      if (rated) {
+        sortConfig['rate'] = -1;
       }
 
       return await this.bookService
@@ -186,6 +207,55 @@ export class BookService implements IBookService {
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
   }
+
+  async getRated() {
+    try {
+      return await this.bookService
+        .find({ isShow: true })
+        .sort({ rate: -1 })
+        .limit(10)
+        .exec();
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  async getBestseller() {
+    try {
+      return await this.bookService
+        .find({ isShow: true })
+        .sort({ sold: -1 })
+        .limit(10)
+        .exec();
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  async getFeatured() {
+    try {
+      return await this.bookService
+        .find({ isShow: true })
+        .sort({ createdAt: -1 })
+        .limit(10)
+        .exec();
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  async getTrending() {
+    try {
+      return await this.bookService
+        .find({ isShow: true })
+        .sort({ view: -1 })
+        .limit(10)
+        .exec();
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    }
+  }
+
   async getBook(slug: string) {
     try {
       const book = await this.bookService.findOne({ slug, isShow: true });

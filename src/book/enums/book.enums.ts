@@ -6,7 +6,7 @@ export enum Languages {
   UA = 'ua',
 }
 
-export enum PriceSort {
+export enum BookSort {
   ASC = 'asc',
   DESC = 'desc',
 }

@@ -1,5 +1,5 @@
 import { Types } from 'mongoose';
-import { PriceSort } from '@book/enums/book.enums';
+import { BookSort } from '@book/enums/book.enums';
 
 export class QueryBookDto {
   query: string;
@@ -8,6 +8,10 @@ export class QueryBookDto {
   offset: number;
   limit: number;
   categoryId: Types.ObjectId;
-  priceSort: PriceSort;
-  author: string;
+  price: BookSort;
+  author: BookSort;
+  rated: BookSort;
+  trending: BookSort;
+  bestseller: BookSort;
+  featured: BookSort;
 }

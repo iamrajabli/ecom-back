@@ -45,9 +45,6 @@ export class Book {
   @Prop({ required: true })
   language: Languages;
 
-  @Prop({ type: [{ type: Types.ObjectId, ref: 'Comment' }] })
-  comment: Comment[];
-
   @Prop({ type: [{ type: Types.ObjectId, ref: 'User' }] })
   wishlist: User[];
 
@@ -62,6 +59,9 @@ export class Book {
 
   @Prop({ default: 0 })
   view: number;
+
+  @Prop({ rate: 0 })
+  rate: number;
 }
 
 export const BookSchema = SchemaFactory.createForClass(Book);

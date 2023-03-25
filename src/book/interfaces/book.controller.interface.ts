@@ -23,4 +23,9 @@ export interface IBookController {
   booksForce(): Promise<Book[]>;
 
   bookForce(id: Types.ObjectId): Promise<Book>;
+
+  rated(): Promise<Book[]>;
+  bestseller(): Promise<Book[]>;
+  featured(): Promise<Book[]>;
+  trending(): Promise<Book[]>;
 }

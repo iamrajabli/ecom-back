@@ -69,6 +69,26 @@ export class BookController implements IBookController {
     return await this.bookService.getBooks(query);
   }
 
+  @Get('rated')
+  async rated() {
+    return await this.bookService.getRated();
+  }
+
+  @Get('bestseller')
+  async bestseller() {
+    return await this.bookService.getBestseller();
+  }
+
+  @Get('featured')
+  async featured() {
+    return await this.bookService.getFeatured();
+  }
+
+  @Get('trending')
+  async trending() {
+    return await this.bookService.getTrending();
+  }
+
   @Get('slug/:slug')
   async book(@Param('slug') slug: string) {
     return await this.bookService.getBook(slug);
