@@ -3,11 +3,11 @@ import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from '@auth/schemas/user.schema';
 import { Model, Types } from 'mongoose';
 import { Book, BookDocument } from '@book/schemas/book.schema';
-import { ReviewDto } from '@/review/dto/review.dto';
+import { CreateReviewDto } from '@/review/dto/create-review.dto';
 import { Review, ReviewDocument } from './schemas/review.schema';
-import { StarResponse } from './types/review.types';
 import { IReviewService } from './interfaces/review.service.interface';
-import { ProcessResponse } from '@/types';
+import { UpdateReviewDto } from './dto/update-review.dto';
+import { ReviewOfBookDto } from './dto/review-book.dto';
 
 @Injectable()
 export class ReviewService implements IReviewService {
@@ -20,7 +20,7 @@ export class ReviewService implements IReviewService {
     private readonly bookService: Model<BookDocument>,
   ) {}
 
-  async createReview(userId: Types.ObjectId, dto: ReviewDto): Promise<Review> {
+  async createReview(userId: Types.ObjectId, dto: CreateReviewDto) {
     try {
       const user = await this.userService.findById(userId);
 
@@ -29,7 +29,7 @@ export class ReviewService implements IReviewService {
       }
 
       const book = await this.bookService.findOne({
-        _id: dto.bookId,
+        _id: dto.book,
         isShow: true,
       });
 
@@ -37,7 +37,7 @@ export class ReviewService implements IReviewService {
         throw new HttpException('Book not found.', HttpStatus.NOT_FOUND);
       }
 
-      const review = await this.reviewService.create({ ...dto, userId });
+      const review = await this.reviewService.create({ ...dto, user: userId });
 
       user.review.push(review.id);
       await user.save();
@@ -54,40 +54,30 @@ export class ReviewService implements IReviewService {
   async updateReview(
     userId: Types.ObjectId,
     reviewId: Types.ObjectId,
-    dto: ReviewDto,
-  ): Promise<Review> {
+    dto: UpdateReviewDto,
+  ) {
     try {
-      const review = await this.reviewService.findById(reviewId);
+      const review = await this.reviewService
+        .findOne({ id: reviewId, user: userId })
+        .populate('book', 'isShow');
 
       if (!review) {
         throw new HttpException('Review not found.', HttpStatus.NOT_FOUND);
       }
 
-      const book = await this.bookService.findOne({
-        _id: dto.bookId,
-        isShow: true,
-      });
-
-      if (!book) {
+      if (!review.book || !review.book.isShow) {
         throw new HttpException('Book not found.', HttpStatus.NOT_FOUND);
       }
 
-      await this.reviewService.findByIdAndUpdate(
-        reviewId,
-        {
-          ...dto,
-          userId,
-        },
-        { new: true },
-      );
-
-      return review;
+      return await this.reviewService.findByIdAndUpdate(reviewId, dto, {
+        new: true,
+      });
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
   }
 
-  async getReviews(): Promise<Review[]> {
+  async getReviews() {
     try {
       return await this.reviewService.find().exec();
     } catch (error) {
@@ -95,28 +85,24 @@ export class ReviewService implements IReviewService {
     }
   }
 
-  async getReviewsOfBook(bookId: Types.ObjectId): Promise<StarResponse> {
+  async getReviewsOfBook(bookId: Types.ObjectId) {
     try {
-      const reviews = await this.reviewService.find({ bookId });
-
-      let count = 0;
-
-      reviews.forEach((rev) => {
-        count += rev.star;
-      });
+      const reviews = await this.reviewService
+        .find({ bookId })
+        .populate({ path: 'user', select: 'name' });
 
       return {
-        star: count,
+        total: reviews.reduce((acc, rev) => acc + rev.star, 0) / reviews.length,
+        reviews: reviews.map(
+          (rev) => new ReviewOfBookDto(rev.star, rev.comment, rev.user.name),
+        ),
       };
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
   }
 
-  async getReviewOfUser(
-    userId: Types.ObjectId,
-    bookId: Types.ObjectId,
-  ): Promise<StarResponse> {
+  async getReviewOfUser(userId: Types.ObjectId, bookId: Types.ObjectId) {
     try {
       const review = await this.reviewService.findOne({ userId, bookId });
 
@@ -126,30 +112,31 @@ export class ReviewService implements IReviewService {
 
       return {
         star: review.star,
+        comment: review.comment,
       };
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
   }
 
-  async removeReview(
-    userId: Types.ObjectId,
-    reviewId: Types.ObjectId,
-  ): Promise<ProcessResponse> {
+  async removeReview(userId: Types.ObjectId, reviewId: Types.ObjectId) {
     try {
-      const review = await this.reviewService.findById(reviewId);
+      const review = await this.reviewService.findOne({
+        _id: reviewId,
+        user: userId,
+      });
 
       if (!review) {
         throw new HttpException('Review not found.', HttpStatus.NOT_FOUND);
       }
 
-      await this.userService.findByIdAndUpdate(review.userId, {
+      await this.userService.findByIdAndUpdate(review.user, {
         $pull: {
           review: reviewId,
         },
       });
 
-      await this.bookService.findByIdAndUpdate(review.bookId, {
+      await this.bookService.findByIdAndUpdate(review.book, {
         $pull: {
           review: reviewId,
         },

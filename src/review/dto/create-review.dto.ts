@@ -1,9 +1,9 @@
 import { IsNumber, IsOptional, IsString } from 'class-validator';
 import { Types } from 'mongoose';
 
-export class ReviewDto {
+export class CreateReviewDto {
   @IsString()
-  bookId: Types.ObjectId;
+  book: Types.ObjectId;
 
   @IsNumber()
   star: number;

@@ -1,5 +1,4 @@
 import { Category, CategoryDocument } from '@/category/schemas/category.schema';
-import { ProcessResponse } from '@/types';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
@@ -19,7 +18,22 @@ export class BookService implements IBookService {
     private readonly categoryService: Model<CategoryDocument>,
   ) {}
 
-  async createBook(dto: CreateBookDto): Promise<Book> {
+  async createSlug(title: string) {
+    let slug: string = slugify(title).toLowerCase();
+    const bookBySlug = await this.bookService.findOne({ slug });
+
+    if (bookBySlug) {
+      while (bookBySlug.slug === slug) {
+        slug += Math.floor(
+          Math.random() * Number(Date.now().toString().slice(10, 13)),
+        );
+      }
+    }
+
+    return slug;
+  }
+
+  async createBook(dto: CreateBookDto) {
     try {
       const category = await this.categoryService.findById(dto.category);
 
@@ -27,16 +41,7 @@ export class BookService implements IBookService {
         throw new HttpException('Category not found', HttpStatus.NOT_FOUND);
       }
 
-      let slug: string = slugify(dto.title).toLowerCase();
-      const bookBySlug = await this.bookService.findOne({ slug: slug });
-
-      if (bookBySlug) {
-        while (bookBySlug.slug === slug) {
-          slug += Math.floor(
-            Math.random() * Number(Date.now().toString().slice(10, 13)),
-          );
-        }
-      }
+      const slug = await this.createSlug(dto.title);
 
       const book = await this.bookService.create({ ...dto, slug });
 
@@ -49,22 +54,29 @@ export class BookService implements IBookService {
     }
   }
 
-  async updateBook(id: Types.ObjectId, dto: UpdateBookDto): Promise<Book> {
+  async updateBook(id: Types.ObjectId, dto: UpdateBookDto) {
     try {
       const book = await this.bookService.findById(id);
+
       if (!book) {
         throw new HttpException('Book not found', HttpStatus.NOT_FOUND);
       }
 
-      return await this.bookService.findByIdAndUpdate(id, dto, {
-        new: true,
-      });
+      const slug = await this.createSlug(dto.title);
+
+      return await this.bookService.findByIdAndUpdate(
+        id,
+        { ...dto, slug },
+        {
+          new: true,
+        },
+      );
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
   }
 
-  async changeVisibilityMany(ids: Types.ObjectId[]): Promise<ProcessResponse> {
+  async changeVisibilityMany(ids: Types.ObjectId[]) {
     try {
       const filter = { id: { $in: ids } };
 
@@ -81,7 +93,7 @@ export class BookService implements IBookService {
     }
   }
 
-  async changeVisibility(id: Types.ObjectId): Promise<Book> {
+  async changeVisibility(id: Types.ObjectId) {
     try {
       const book = await this.bookService.findById(id);
       if (!book) {
@@ -100,7 +112,7 @@ export class BookService implements IBookService {
     }
   }
 
-  async deleteBook(id: Types.ObjectId): Promise<ProcessResponse> {
+  async deleteBook(id: Types.ObjectId) {
     try {
       const book = await this.bookService.findById(id);
 
@@ -137,7 +149,7 @@ export class BookService implements IBookService {
     categoryId,
     priceSort,
     author,
-  }: QueryBookDto): Promise<Book[]> {
+  }: QueryBookDto) {
     try {
       const priceFilter = { price: { $gte: min } };
       const categoryFilter = {};
@@ -174,20 +186,24 @@ export class BookService implements IBookService {
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
   }
-  async getBook(slug: string): Promise<Book> {
+  async getBook(slug: string) {
     try {
       const book = await this.bookService.findOne({ slug, isShow: true });
 
       if (!book) {
         throw new HttpException('Book not found', HttpStatus.NOT_FOUND);
       }
+
+      book.view += 1;
+      await book.save();
+
       return book;
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
   }
 
-  async getForceBooks(): Promise<Book[]> {
+  async getForceBooks() {
     try {
       return await this.bookService.find().exec();
     } catch (error) {
@@ -195,9 +211,9 @@ export class BookService implements IBookService {
     }
   }
 
-  async getForceBook(id: Types.ObjectId): Promise<Book> {
+  async getForceBook(id: Types.ObjectId) {
     try {
-      const book = await this.bookService.findById(id);
+      const book = await this.bookService.findById(id).populate('review');
 
       if (!book) {
         throw new HttpException('Book not found', HttpStatus.NOT_FOUND);
@@ -214,7 +230,6 @@ export class BookService implements IBookService {
     for (let i = 0; i < count; i++) {
       const book = {
         title: faker.commerce.productName(),
-        slug: slugify(faker.commerce.productName()).toLowerCase(),
         author: faker.name.firstName(),
         publisher: faker.company.name(),
         publishingYear:

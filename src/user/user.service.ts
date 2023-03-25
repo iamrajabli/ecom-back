@@ -1,6 +1,5 @@
 import { Role } from '@/auth/enums/role.enum';
 import { User, UserDocument } from '@/auth/schemas/user.schema';
-import { ProcessResponse } from '@/types';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
@@ -45,7 +44,7 @@ export class UserService implements IUserService {
     }
   }
 
-  async deleteUser(id: Types.ObjectId): Promise<ProcessResponse> {
+  async deleteUser(id: Types.ObjectId) {
     try {
       const user = await this.userModel.findById(id);
 
@@ -64,7 +63,7 @@ export class UserService implements IUserService {
     }
   }
 
-  async changeRole(id: Types.ObjectId, role: Role): Promise<ProcessResponse> {
+  async changeRole(id: Types.ObjectId, role: Role) {
     try {
       const user = await this.userModel.findById(id);
 
@@ -84,7 +83,7 @@ export class UserService implements IUserService {
     }
   }
 
-  async getUsers(): Promise<User[]> {
+  async getUsers() {
     try {
       return await this.userModel.find().select('-password').exec();
     } catch (error) {
@@ -92,7 +91,7 @@ export class UserService implements IUserService {
     }
   }
 
-  async getUser(id: Types.ObjectId): Promise<User> {
+  async getUser(id: Types.ObjectId) {
     try {
       const user = await this.userModel.findById(id).select('-password');
 

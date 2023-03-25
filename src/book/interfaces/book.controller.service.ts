@@ -23,4 +23,6 @@ export interface IBookService {
   getForceBooks(): Promise<Book[]>;
 
   getForceBook(id: Types.ObjectId): Promise<Book>;
+
+  createSlug(title: string): Promise<string>;
 }

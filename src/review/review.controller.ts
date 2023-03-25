@@ -14,8 +14,9 @@ import { ReviewService } from './review.service';
 import { JwtAuthGuard } from '@auth/guards/auth.guard';
 import { CurrentUser } from '@auth/decorators/current-user.decorator';
 import { Types } from 'mongoose';
-import { ReviewDto } from '@/review/dto/review.dto';
+import { CreateReviewDto } from '@/review/dto/create-review.dto';
 import { IReviewController } from './interfaces/review.controller.interface';
+import { UpdateReviewDto } from './dto/update-review.dto';
 
 @Controller('review')
 export class ReviewController implements IReviewController {
@@ -26,7 +27,7 @@ export class ReviewController implements IReviewController {
   @Post()
   async create(
     @CurrentUser('id') userId: Types.ObjectId,
-    @Body() dto: ReviewDto,
+    @Body() dto: CreateReviewDto,
   ) {
     return await this.reviewService.createReview(userId, dto);
   }
@@ -37,7 +38,7 @@ export class ReviewController implements IReviewController {
   async update(
     @CurrentUser('id') userId: Types.ObjectId,
     @Param('reviewId') reviewId: Types.ObjectId,
-    @Body() dto: ReviewDto,
+    @Body() dto: UpdateReviewDto,
   ) {
     return await this.reviewService.updateReview(userId, reviewId, dto);
   }

@@ -1,4 +1,3 @@
-import { ProcessResponse } from '@/types';
 import { faker } from '@faker-js/faker';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -14,17 +13,14 @@ export class CategoryService implements ICategoryService {
     private readonly categoryService: Model<CategoryDocument>,
   ) {}
 
-  async createCategory(dto: CategoryDto): Promise<Category> {
+  async createCategory(dto: CategoryDto) {
     try {
       return await this.categoryService.create(dto);
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
   }
-  async updateCategory(
-    id: Types.ObjectId,
-    dto: CategoryDto,
-  ): Promise<Category> {
+  async updateCategory(id: Types.ObjectId, dto: CategoryDto) {
     try {
       const category = await this.categoryService.findById(id);
       if (!category) {
@@ -39,7 +35,7 @@ export class CategoryService implements ICategoryService {
     }
   }
 
-  async deleteCategory(id: Types.ObjectId): Promise<ProcessResponse> {
+  async deleteCategory(id: Types.ObjectId) {
     try {
       const category = await this.categoryService.findById(id);
       if (!category) {
@@ -56,14 +52,14 @@ export class CategoryService implements ICategoryService {
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
   }
-  async getCategories(): Promise<Category[]> {
+  async getCategories() {
     try {
       return await this.categoryService.find().exec();
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
   }
-  async getCategory(id: Types.ObjectId): Promise<Category> {
+  async getCategory(id: Types.ObjectId) {
     try {
       const category = await this.categoryService.findById(id);
       if (!category) {

@@ -14,10 +14,10 @@ export class Review {
   comment: string;
 
   @Prop({ type: Types.ObjectId, ref: 'Book' })
-  bookId: Book;
+  book: Book;
 
   @Prop({ type: Types.ObjectId, ref: 'User' })
-  userId: User;
+  user: User;
 }
 
 export const ReviewSchema = SchemaFactory.createForClass(Review);

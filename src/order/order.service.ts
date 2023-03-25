@@ -63,6 +63,7 @@ export class OrderService {
             const book = await this.bookService.findById(item.book);
 
             book.stock -= item.count;
+            book.sold += 1;
 
             await book.save();
           }
@@ -78,6 +79,7 @@ export class OrderService {
             const book = await this.bookService.findById(item.book);
 
             book.stock += item.count;
+            book.sold -= 1;
 
             await book.save();
           }

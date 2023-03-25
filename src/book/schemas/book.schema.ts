@@ -54,11 +54,14 @@ export class Book {
   @Prop({ type: [{ type: Types.ObjectId, ref: 'Review' }] })
   review: Review[];
 
-  @Prop()
+  @Prop({ default: 0 })
   sold: number;
 
   @Prop({ default: false })
   isShow: boolean;
+
+  @Prop({ default: 0 })
+  view: number;
 }
 
 export const BookSchema = SchemaFactory.createForClass(Book);

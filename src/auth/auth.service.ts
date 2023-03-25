@@ -12,7 +12,6 @@ import { AuthUserDto } from './dto/auth-user.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { IAuthService } from './interfaces/auth.service.interface';
 import { User, UserDocument } from './schemas/user.schema';
-import { AuthResponse, Tokens } from './types/auth.types';
 
 @Injectable()
 export class AuthService implements IAuthService {
@@ -21,7 +20,7 @@ export class AuthService implements IAuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async auth(dto: AuthUserDto): Promise<AuthResponse> {
+  async auth(dto: AuthUserDto) {
     try {
       const user = await this.validateUser(dto);
 
@@ -41,7 +40,7 @@ export class AuthService implements IAuthService {
     }
   }
 
-  async createUser(dto: CreateUserDto): Promise<AuthResponse> {
+  async createUser(dto: CreateUserDto) {
     try {
       const existingUser = await this.userModel.findOne({
         $or: [
@@ -86,7 +85,7 @@ export class AuthService implements IAuthService {
     }
   }
 
-  async validateUser(dto: AuthUserDto): Promise<User & Pick<Document, 'id'>> {
+  async validateUser(dto: AuthUserDto) {
     const user = await this.userModel.findOne({
       $or: [{ email: dto.login }, { username: dto.login }],
     });
@@ -104,12 +103,12 @@ export class AuthService implements IAuthService {
     return user as User & Pick<Document, 'id'>;
   }
 
-  generateAuthFields(user: User): AuthResponse['user'] {
+  generateAuthFields(user: User) {
     const { email, name, phone, username } = user;
     return { email, name, phone, username };
   }
 
-  generateTokens(id: ObjectId): Tokens {
+  generateTokens(id: ObjectId) {
     const data = { id };
 
     const accessToken = this.jwtService.sign(data, { expiresIn: '10h' });
@@ -118,7 +117,7 @@ export class AuthService implements IAuthService {
     return { accessToken, refreshToken };
   }
 
-  async generateNewTokens(refreshToken: string): Promise<AuthResponse> {
+  async generateNewTokens(refreshToken: string) {
     try {
       const result = (await this.jwtService.verifyAsync(
         refreshToken,
