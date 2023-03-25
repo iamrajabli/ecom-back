@@ -6,6 +6,7 @@ import { AuthResponse, Tokens } from '@auth/types/auth.types';
 
 export interface IAuthService {
   auth: (dto: AuthUserDto) => Promise<AuthResponse>;
+  admin: (dto: AuthUserDto) => Promise<AuthResponse>;
   createUser: (dto: CreateUserDto) => Promise<AuthResponse>;
   generateTokens: (user: ObjectId) => Tokens;
   validateUser: (user: AuthUserDto) => Promise<User & Pick<Document, 'id'>>;

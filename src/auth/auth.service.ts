@@ -10,6 +10,7 @@ import { genSalt, hash, compare } from 'bcrypt';
 import { Document, Model, ObjectId } from 'mongoose';
 import { AuthUserDto } from './dto/auth-user.dto';
 import { CreateUserDto } from './dto/create-user.dto';
+import { Role } from './enums/role.enum';
 import { IAuthService } from './interfaces/auth.service.interface';
 import { User, UserDocument } from './schemas/user.schema';
 
@@ -27,6 +28,32 @@ export class AuthService implements IAuthService {
       if (user.isDisabled) {
         throw new HttpException(
           'This account is disabled. Сontact with support.',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      return {
+        user: this.generateAuthFields(user),
+        tokens: this.generateTokens(user.id),
+      };
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    }
+  }
+  async admin(dto: AuthUserDto) {
+    try {
+      const user = await this.validateUser(dto);
+
+      if (user.isDisabled) {
+        throw new HttpException(
+          'This account is disabled. Сontact with support.',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      if (!user.roles.includes(Role.Admin)) {
+        throw new HttpException(
+          'Forbidden resource. Сontact with support.',
           HttpStatus.BAD_REQUEST,
         );
       }

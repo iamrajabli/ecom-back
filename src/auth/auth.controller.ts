@@ -26,6 +26,12 @@ export class AuthController implements IAuthController {
     return this.authService.auth(dto);
   }
 
+  @Post('admin')
+  @UsePipes(new ValidationPipe())
+  async admin(@Body() dto: AuthUserDto) {
+    return this.authService.admin(dto);
+  }
+
   @Post('token')
   async token(@Body('refreshToken') refreshToken: string) {
     return this.authService.generateNewTokens(refreshToken);

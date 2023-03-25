@@ -9,7 +9,6 @@ import { CategoryModule } from './category/category.module';
 import { ReviewModule } from './review/review.module';
 import { WishlistModule } from './wishlist/wishlist.module';
 import { OrderModule } from './order/order.module';
-import { CommentModule } from './comment/comment.module';
 
 @Module({
   imports: [
@@ -25,7 +24,6 @@ import { CommentModule } from './comment/comment.module';
     ReviewModule,
     WishlistModule,
     OrderModule,
-    CommentModule,
   ],
   controllers: [],
   providers: [],
