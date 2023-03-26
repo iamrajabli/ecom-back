@@ -12,6 +12,7 @@ export interface IReviewController {
     dto: UpdateReviewDto,
   ): Promise<Review>;
   reviews(): Promise<Review[]>;
+  review(id: Types.ObjectId): Promise<Review>;
   reviewsOfBook(bookId: Types.ObjectId): Promise<ReviewOfBook>;
   reviewOfUser(
     userId: Types.ObjectId,

@@ -17,7 +17,8 @@
       "@category/*": ["./category/*"],
       "@book/*": ["./book/*"],
       "@review/*": ["./review/*"],
-      "@order/*": ["./order/*"]
+      "@order/*": ["./order/*"],
+      "@statistics/*": ["./statistics/*"],
     },
     "incremental": true,
     "skipLibCheck": true,

@@ -32,6 +32,11 @@ export class ReviewController implements IReviewController {
     return await this.reviewService.createReview(userId, dto);
   }
 
+  @Get(':id')
+  async review(@Param('id') id: Types.ObjectId) {
+    return await this.reviewService.getReview(id);
+  }
+
   @UsePipes(new ValidationPipe())
   @UseGuards(JwtAuthGuard)
   @Patch(':reviewId')

@@ -13,14 +13,14 @@ import { QueryBookDto } from './dto/query-book.dto';
 @Injectable()
 export class BookService implements IBookService {
   constructor(
-    @InjectModel(Book.name) private readonly bookService: Model<BookDocument>,
+    @InjectModel(Book.name) private readonly bookModel: Model<BookDocument>,
     @InjectModel(Category.name)
-    private readonly categoryService: Model<CategoryDocument>,
+    private readonly categoryModel: Model<CategoryDocument>,
   ) {}
 
   async createSlug(title: string) {
     let slug: string = slugify(title).toLowerCase();
-    const bookBySlug = await this.bookService.findOne({ slug });
+    const bookBySlug = await this.bookModel.findOne({ slug });
 
     if (bookBySlug) {
       while (bookBySlug.slug === slug) {
@@ -35,7 +35,7 @@ export class BookService implements IBookService {
 
   async createBook(dto: CreateBookDto) {
     try {
-      const category = await this.categoryService.findById(dto.category);
+      const category = await this.categoryModel.findById(dto.category);
 
       if (!category) {
         throw new HttpException('Category not found', HttpStatus.NOT_FOUND);
@@ -43,7 +43,7 @@ export class BookService implements IBookService {
 
       const slug = await this.createSlug(dto.title);
 
-      const book = await this.bookService.create({ ...dto, slug });
+      const book = await this.bookModel.create({ ...dto, slug });
 
       category.books.push(book.id);
       await category.save();
@@ -56,7 +56,7 @@ export class BookService implements IBookService {
 
   async updateBook(id: Types.ObjectId, dto: UpdateBookDto) {
     try {
-      const book = await this.bookService.findById(id);
+      const book = await this.bookModel.findById(id);
 
       if (!book) {
         throw new HttpException('Book not found', HttpStatus.NOT_FOUND);
@@ -64,7 +64,7 @@ export class BookService implements IBookService {
 
       const slug = await this.createSlug(dto.title);
 
-      return await this.bookService.findByIdAndUpdate(
+      return await this.bookModel.findByIdAndUpdate(
         id,
         { ...dto, slug },
         {
@@ -82,7 +82,7 @@ export class BookService implements IBookService {
 
       const update = { $set: { isShow: true } };
 
-      await this.bookService.updateMany(filter, update);
+      await this.bookModel.updateMany(filter, update);
 
       return {
         message: 'Books visibility successfully changed',
@@ -95,12 +95,12 @@ export class BookService implements IBookService {
 
   async changeVisibility(id: Types.ObjectId) {
     try {
-      const book = await this.bookService.findById(id);
+      const book = await this.bookModel.findById(id);
       if (!book) {
         throw new HttpException('Book not found', HttpStatus.NOT_FOUND);
       }
 
-      return await this.bookService.findByIdAndUpdate(
+      return await this.bookModel.findByIdAndUpdate(
         id,
         { isShow: !book.isShow },
         {
@@ -114,22 +114,22 @@ export class BookService implements IBookService {
 
   async deleteBook(id: Types.ObjectId) {
     try {
-      const book = await this.bookService.findById(id);
+      const book = await this.bookModel.findById(id);
 
       if (!book) {
         throw new HttpException('Book not found', HttpStatus.NOT_FOUND);
       }
 
-      const category = await this.categoryService.findById(book.category);
+      const category = await this.categoryModel.findById(book.category);
 
       if (!category) {
         throw new HttpException('Category not found', HttpStatus.NOT_FOUND);
       }
 
-      await this.categoryService.findByIdAndUpdate(book.category, {
+      await this.categoryModel.findByIdAndUpdate(book.category, {
         $pull: { books: book.id },
       });
-      await this.bookService.findByIdAndDelete(id);
+      await this.bookModel.findByIdAndDelete(id);
 
       return {
         message: 'Book successfully deleted',
@@ -197,7 +197,7 @@ export class BookService implements IBookService {
         sortConfig['rate'] = -1;
       }
 
-      return await this.bookService
+      return await this.bookModel
         .find({ isShow: true, ...filterConfig() })
         .skip(offset)
         .sort(sortConfig)
@@ -210,7 +210,7 @@ export class BookService implements IBookService {
 
   async getRated() {
     try {
-      return await this.bookService
+      return await this.bookModel
         .find({ isShow: true })
         .sort({ rate: -1 })
         .limit(10)
@@ -222,7 +222,7 @@ export class BookService implements IBookService {
 
   async getBestseller() {
     try {
-      return await this.bookService
+      return await this.bookModel
         .find({ isShow: true })
         .sort({ sold: -1 })
         .limit(10)
@@ -234,7 +234,7 @@ export class BookService implements IBookService {
 
   async getFeatured() {
     try {
-      return await this.bookService
+      return await this.bookModel
         .find({ isShow: true })
         .sort({ createdAt: -1 })
         .limit(10)
@@ -246,7 +246,7 @@ export class BookService implements IBookService {
 
   async getTrending() {
     try {
-      return await this.bookService
+      return await this.bookModel
         .find({ isShow: true })
         .sort({ view: -1 })
         .limit(10)
@@ -258,7 +258,7 @@ export class BookService implements IBookService {
 
   async getBook(slug: string) {
     try {
-      const book = await this.bookService.findOne({ slug, isShow: true });
+      const book = await this.bookModel.findOne({ slug, isShow: true });
 
       if (!book) {
         throw new HttpException('Book not found', HttpStatus.NOT_FOUND);
@@ -275,7 +275,7 @@ export class BookService implements IBookService {
 
   async getForceBooks() {
     try {
-      return await this.bookService.find().exec();
+      return await this.bookModel.find().exec();
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
@@ -283,7 +283,7 @@ export class BookService implements IBookService {
 
   async getForceBook(id: Types.ObjectId) {
     try {
-      const book = await this.bookService.findById(id).populate('review');
+      const book = await this.bookModel.findById(id).populate('review');
 
       if (!book) {
         throw new HttpException('Book not found', HttpStatus.NOT_FOUND);
@@ -295,11 +295,12 @@ export class BookService implements IBookService {
   }
 
   async seeder(count: number) {
-    const categories = await this.categoryService.find().exec();
+    const categories = await this.categoryModel.find().exec();
 
     for (let i = 0; i < count; i++) {
       const book = {
         title: faker.commerce.productName(),
+        slug: slugify(faker.commerce.productName()),
         author: faker.name.firstName(),
         publisher: faker.company.name(),
         publishingYear:
@@ -314,11 +315,9 @@ export class BookService implements IBookService {
         isShow: true,
       };
 
-      const createdBook = await this.bookService.create(book);
+      const createdBook = await this.bookModel.create(book);
 
-      const category = await this.categoryService.findById(
-        createdBook.category,
-      );
+      const category = await this.categoryModel.findById(createdBook.category);
 
       category.books.push(createdBook.id);
 

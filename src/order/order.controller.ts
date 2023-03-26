@@ -11,21 +11,20 @@ import {
   Param,
   Patch,
   Post,
-  Query,
   UseGuards,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
 import { Types } from 'mongoose';
-import { SummaryDto } from './dto/summary.dto';
-import { OrderStatus } from './enum/order.enum';
+import { OrderStatus } from './enums/order.enum';
 import { OrderService } from './order.service';
 
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
+import { IOrderController } from './interfaces/order.controller.interface';
 
 @Controller('order')
-export class OrderController {
+export class OrderController implements IOrderController {
   constructor(private readonly orderService: OrderService) {}
 
   @UseGuards(JwtAuthGuard, RoleGuard)
@@ -37,7 +36,7 @@ export class OrderController {
 
   @UseGuards(JwtAuthGuard, RoleGuard)
   @Roles(Role.Admin)
-  @Get('')
+  @Get()
   async orders() {
     return await this.orderService.getOrders();
   }
@@ -81,12 +80,5 @@ export class OrderController {
     @Param('id') orderId: Types.ObjectId,
   ) {
     return await this.orderService.deleteOrder(userId, orderId);
-  }
-
-  @UseGuards(JwtAuthGuard, RoleGuard)
-  @Roles(Role.Admin)
-  @Get('summary/statistics')
-  async statistics(@Query() dto: SummaryDto) {
-    return await this.orderService.orderStatistics(dto.startDate, dto.endDate);
   }
 }

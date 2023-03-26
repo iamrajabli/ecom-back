@@ -1,4 +1,4 @@
-export class SummaryDto {
+export class OrderStatisticsDto {
   readonly startDate: string;
   readonly endDate: string;
 }

@@ -1,5 +1,5 @@
 import { Types } from 'mongoose';
-import { BookSort } from '@book/enums/book.enums';
+import { BookSort } from '@/book/enums/book.enum';
 
 export class QueryBookDto {
   query: string;

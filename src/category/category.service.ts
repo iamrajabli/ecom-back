@@ -10,24 +10,24 @@ import { Category, CategoryDocument } from './schemas/category.schema';
 export class CategoryService implements ICategoryService {
   constructor(
     @InjectModel(Category.name)
-    private readonly categoryService: Model<CategoryDocument>,
+    private readonly categoryModel: Model<CategoryDocument>,
   ) {}
 
   async createCategory(dto: CategoryDto) {
     try {
-      return await this.categoryService.create(dto);
+      return await this.categoryModel.create(dto);
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
   }
   async updateCategory(id: Types.ObjectId, dto: CategoryDto) {
     try {
-      const category = await this.categoryService.findById(id);
+      const category = await this.categoryModel.findById(id);
       if (!category) {
         throw new HttpException('Category not found', HttpStatus.NOT_FOUND);
       }
 
-      return await this.categoryService.findByIdAndUpdate(id, dto, {
+      return await this.categoryModel.findByIdAndUpdate(id, dto, {
         new: true,
       });
     } catch (error) {
@@ -37,12 +37,12 @@ export class CategoryService implements ICategoryService {
 
   async deleteCategory(id: Types.ObjectId) {
     try {
-      const category = await this.categoryService.findById(id);
+      const category = await this.categoryModel.findById(id);
       if (!category) {
         throw new HttpException('Category not found', HttpStatus.NOT_FOUND);
       }
 
-      await this.categoryService.findByIdAndDelete(id);
+      await this.categoryModel.findByIdAndDelete(id);
 
       return {
         message: 'Category successfully deleted',
@@ -54,14 +54,14 @@ export class CategoryService implements ICategoryService {
   }
   async getCategories() {
     try {
-      return await this.categoryService.find().exec();
+      return await this.categoryModel.find().exec();
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
   }
   async getCategory(id: Types.ObjectId) {
     try {
-      const category = await this.categoryService.findById(id);
+      const category = await this.categoryModel.findById(id);
       if (!category) {
         throw new HttpException('Category not found', HttpStatus.NOT_FOUND);
       }
@@ -78,7 +78,7 @@ export class CategoryService implements ICategoryService {
         description: faker.commerce.productDescription(),
       };
 
-      await this.categoryService.create(category);
+      await this.categoryModel.create(category);
     }
 
     return {

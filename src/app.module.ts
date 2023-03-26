@@ -9,6 +9,7 @@ import { CategoryModule } from './category/category.module';
 import { ReviewModule } from './review/review.module';
 import { WishlistModule } from './wishlist/wishlist.module';
 import { OrderModule } from './order/order.module';
+import { StatisticsModule } from './statistics/statistics.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { OrderModule } from './order/order.module';
     ReviewModule,
     WishlistModule,
     OrderModule,
+    StatisticsModule,
   ],
   controllers: [],
   providers: [],

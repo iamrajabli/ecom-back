@@ -11,9 +11,15 @@ export interface IReviewService {
     dto: CreateReviewDto,
   ): Promise<Review>;
   getReviews(): Promise<Review[]>;
+  getReview(id: Types.ObjectId): Promise<Review>;
   getReviewsOfBook(bookId: Types.ObjectId): Promise<ReviewOfBook>;
   getReviewOfUser(
     userId: Types.ObjectId,
     bookId: Types.ObjectId,
   ): Promise<StarResponse>;
+  calculateTotalReview(
+    revLength: number,
+    userRev: number,
+    currentRev: number,
+  ): number;
 }

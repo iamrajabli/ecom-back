@@ -1,7 +1,7 @@
 import { User } from '@/auth/schemas/user.schema';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
-import { OrderStatus } from '@order/enum/order.enum';
+import { OrderStatus } from '@/order/enums/order.enum';
 import { Book } from '@/book/schemas/book.schema';
 
 export type OrderDocument = HydratedDocument<Order>;

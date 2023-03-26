@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
-import { Languages } from '@book/enums/book.enums';
+import { Languages } from '@/book/enums/book.enum';
 import { Review } from '@/review/schemas/review.schema';
 import { User } from '@auth/schemas/user.schema';
 import { Category } from '@/category/schemas/category.schema';
@@ -60,7 +60,7 @@ export class Book {
   @Prop({ default: 0 })
   view: number;
 
-  @Prop({ rate: 0 })
+  @Prop({ default: 0 })
   rate: number;
 }
 

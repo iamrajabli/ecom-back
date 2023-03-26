@@ -13,36 +13,49 @@ import { ReviewOfBookDto } from './dto/review-book.dto';
 export class ReviewService implements IReviewService {
   constructor(
     @InjectModel(Review.name)
-    private readonly reviewService: Model<ReviewDocument>,
+    private readonly reviewModel: Model<ReviewDocument>,
     @InjectModel(User.name)
-    private readonly userService: Model<UserDocument>,
+    private readonly userModel: Model<UserDocument>,
     @InjectModel(Book.name)
-    private readonly bookService: Model<BookDocument>,
+    private readonly bookModel: Model<BookDocument>,
   ) {}
 
   async createReview(userId: Types.ObjectId, dto: CreateReviewDto) {
     try {
-      const user = await this.userService.findById(userId);
+      const user = await this.userModel.findById(userId);
 
       if (!user) {
         throw new HttpException('User not found.', HttpStatus.NOT_FOUND);
       }
 
-      const book = await this.bookService.findOne({
-        _id: dto.book,
-        isShow: true,
-      });
+      const book = await this.bookModel
+        .findOne({
+          _id: dto.book,
+          isShow: true,
+        })
+        .populate({ path: 'review', select: 'user' });
 
       if (!book) {
         throw new HttpException('Book not found.', HttpStatus.NOT_FOUND);
       }
 
-      const review = await this.reviewService.create({ ...dto, user: userId });
+      // check user former review
+      if (book.review.some((rev) => String(rev.user) == String(userId))) {
+        throw new HttpException('Review already have.', HttpStatus.NOT_FOUND);
+      }
+
+      // get total rev
+      const totalRev = Math.ceil(
+        this.calculateTotalReview(book.review.length, dto.star, book.rate),
+      );
+
+      const review = await this.reviewModel.create({ ...dto, user: userId });
 
       user.review.push(review.id);
       await user.save();
 
       book.review.push(review.id);
+      book.rate = totalRev > 5 ? 5 : totalRev;
       await book.save();
 
       return review;
@@ -57,9 +70,12 @@ export class ReviewService implements IReviewService {
     dto: UpdateReviewDto,
   ) {
     try {
-      const review = await this.reviewService
-        .findOne({ id: reviewId, user: userId })
-        .populate('book', 'isShow');
+      const review = await this.reviewModel
+        .findOne({
+          _id: reviewId,
+          user: userId,
+        })
+        .populate('book');
 
       if (!review) {
         throw new HttpException('Review not found.', HttpStatus.NOT_FOUND);
@@ -69,7 +85,25 @@ export class ReviewService implements IReviewService {
         throw new HttpException('Book not found.', HttpStatus.NOT_FOUND);
       }
 
-      return await this.reviewService.findByIdAndUpdate(reviewId, dto, {
+      // get total rev
+      const totalRev = Math.ceil(
+        this.calculateTotalReview(
+          review.book.review.length,
+          dto.star,
+          review.book.rate,
+        ),
+      );
+
+      await this.bookModel.findOneAndUpdate(
+        {
+          slug: review.book.slug,
+        },
+        {
+          rate: totalRev > 5 ? 5 : totalRev,
+        },
+      );
+
+      return await this.reviewModel.findByIdAndUpdate(reviewId, dto, {
         new: true,
       });
     } catch (error) {
@@ -79,7 +113,21 @@ export class ReviewService implements IReviewService {
 
   async getReviews() {
     try {
-      return await this.reviewService.find().exec();
+      return await this.reviewModel.find().exec();
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  async getReview(id: Types.ObjectId) {
+    try {
+      const review = await this.reviewModel.findById(id);
+
+      if (!review) {
+        throw new HttpException('Review not found.', HttpStatus.NOT_FOUND);
+      }
+
+      return review;
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
@@ -87,12 +135,16 @@ export class ReviewService implements IReviewService {
 
   async getReviewsOfBook(bookId: Types.ObjectId) {
     try {
-      const reviews = await this.reviewService
+      const reviews = await this.reviewModel
         .find({ bookId })
         .populate({ path: 'user', select: 'name' });
 
+      const total = Math.ceil(
+        reviews.reduce((acc, rev) => acc + rev.star, 0) / reviews.length,
+      );
+
       return {
-        total: reviews.reduce((acc, rev) => acc + rev.star, 0) / reviews.length,
+        total: total > 5 ? 5 : total,
         reviews: reviews.map(
           (rev) => new ReviewOfBookDto(rev.star, rev.comment, rev.user.name),
         ),
@@ -104,7 +156,7 @@ export class ReviewService implements IReviewService {
 
   async getReviewOfUser(userId: Types.ObjectId, bookId: Types.ObjectId) {
     try {
-      const review = await this.reviewService.findOne({ userId, bookId });
+      const review = await this.reviewModel.findOne({ userId, bookId });
 
       if (!review) {
         throw new HttpException('Review not found.', HttpStatus.NOT_FOUND);
@@ -121,7 +173,7 @@ export class ReviewService implements IReviewService {
 
   async removeReview(userId: Types.ObjectId, reviewId: Types.ObjectId) {
     try {
-      const review = await this.reviewService.findOne({
+      const review = await this.reviewModel.findOne({
         _id: reviewId,
         user: userId,
       });
@@ -130,13 +182,13 @@ export class ReviewService implements IReviewService {
         throw new HttpException('Review not found.', HttpStatus.NOT_FOUND);
       }
 
-      await this.userService.findByIdAndUpdate(review.user, {
+      await this.userModel.findByIdAndUpdate(review.user, {
         $pull: {
           review: reviewId,
         },
       });
 
-      await this.bookService.findByIdAndUpdate(review.book, {
+      await this.bookModel.findByIdAndUpdate(review.book, {
         $pull: {
           review: reviewId,
         },
@@ -151,5 +203,9 @@ export class ReviewService implements IReviewService {
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
+  }
+
+  calculateTotalReview(revLength: number, userRev: number, currentRev: number) {
+    return (currentRev * revLength + userRev) / (revLength + 1);
   }
 }
