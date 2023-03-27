@@ -2,7 +2,7 @@ import { Types } from 'mongoose';
 import { CreateReviewDto } from '@/review/dto/create-review.dto';
 import { Review } from '@review/schemas/review.schema';
 import { ReviewOfBook, StarResponse } from '@review/types/review.types';
-import { UpdateReviewDto } from '../dto/update-review.dto';
+import { UpdateReviewDto } from 'review/dto/update-review.dto';
 
 export interface IReviewController {
   create(userId: Types.ObjectId, dto: CreateReviewDto): Promise<Review>;

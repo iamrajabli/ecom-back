@@ -19,6 +19,7 @@
       "@review/*": ["./review/*"],
       "@order/*": ["./order/*"],
       "@statistics/*": ["./statistics/*"],
+      "@discount/*": ["./discount/*"]
     },
     "incremental": true,
     "skipLibCheck": true,

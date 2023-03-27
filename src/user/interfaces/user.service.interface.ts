@@ -3,7 +3,7 @@ import { User } from '@/auth/schemas/user.schema';
 import { ProcessResponse } from '@/types';
 import { ProfileResponse, UserResponse } from '@user/types/user.types';
 import { Types } from 'mongoose';
-import { UpdateUserDto } from '../dto/update-user.dto';
+import { UpdateUserDto } from 'user/dto/update-user.dto';
 
 export interface IUserService {
   updateProfile(

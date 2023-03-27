@@ -10,6 +10,7 @@ import { ReviewModule } from './review/review.module';
 import { WishlistModule } from './wishlist/wishlist.module';
 import { OrderModule } from './order/order.module';
 import { StatisticsModule } from './statistics/statistics.module';
+import { DiscountModule } from './discount/discount.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { StatisticsModule } from './statistics/statistics.module';
     WishlistModule,
     OrderModule,
     StatisticsModule,
+    DiscountModule,
   ],
   controllers: [],
   providers: [],

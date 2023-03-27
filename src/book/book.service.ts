@@ -146,17 +146,20 @@ export class BookService implements IBookService {
     min = 0,
     offset,
     query,
-    categoryId,
+    category,
     price,
     author,
     rated,
     trending,
     bestseller,
     featured,
+    lang,
+    discount,
   }: QueryBookDto) {
     try {
       const priceFilter = { price: { $gte: min } };
       const categoryFilter = {};
+      const langFilter = {};
       const searchFilter = { title: { $regex: new RegExp(query, 'i') } };
       const authorFilter = { author: { $regex: new RegExp(author, 'i') } };
       let sortConfig = {};
@@ -165,14 +168,18 @@ export class BookService implements IBookService {
         // if have max then priceFilter must be => { price: { $gte: xxx, $lte: xxx } }
         max ? (priceFilter.price['$lte'] = max) : null;
 
-        // if have categoryId then categoryFilter must be => { categoryId: { $eq: "xxx" } }
-        categoryId ? (categoryFilter['category'] = { $eq: categoryId }) : null;
+        // if have category then categoryFilter must be => { category: { $eq: "xxx" } }
+        category ? (categoryFilter['category'] = { $eq: category }) : null;
+
+        // if have lang then categoryFilter must be => { lang: { $eq: "xxx" } }
+        lang ? (langFilter['language'] = { $eq: lang }) : null;
 
         return {
           ...categoryFilter,
           ...priceFilter,
           ...searchFilter,
           ...authorFilter,
+          ...langFilter,
         };
       };
 
@@ -197,11 +204,16 @@ export class BookService implements IBookService {
         sortConfig['rate'] = -1;
       }
 
+      if (discount) {
+        sortConfig['discount'] = -1;
+      }
+
       return await this.bookModel
         .find({ isShow: true, ...filterConfig() })
         .skip(offset)
         .sort(sortConfig)
         .limit(limit)
+        .populate('discount')
         .exec();
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
@@ -300,7 +312,7 @@ export class BookService implements IBookService {
     for (let i = 0; i < count; i++) {
       const book = {
         title: faker.commerce.productName(),
-        slug: slugify(faker.commerce.productName()),
+        slug: slugify(faker.commerce.productName()).toLowerCase(),
         author: faker.name.firstName(),
         publisher: faker.company.name(),
         publishingYear:

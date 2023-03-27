@@ -4,6 +4,7 @@ import { Languages } from '@/book/enums/book.enum';
 import { Review } from '@/review/schemas/review.schema';
 import { User } from '@auth/schemas/user.schema';
 import { Category } from '@/category/schemas/category.schema';
+import { Discount } from '@/discount/schema/discount.schema';
 
 export type BookDocument = HydratedDocument<Book>;
 
@@ -50,6 +51,9 @@ export class Book {
 
   @Prop({ type: [{ type: Types.ObjectId, ref: 'Review' }] })
   review: Review[];
+
+  @Prop({ type: Types.ObjectId, ref: 'Discount' })
+  discount: Discount;
 
   @Prop({ default: 0 })
   sold: number;

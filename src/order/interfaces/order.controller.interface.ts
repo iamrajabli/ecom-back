@@ -1,9 +1,9 @@
 import { ProcessResponse } from '@/types';
 import { Types } from 'mongoose';
-import { CreateOrderDto } from '../dto/create-order.dto';
-import { UpdateOrderDto } from '../dto/update-order.dto';
-import { OrderStatus } from '../enums/order.enum';
-import { Order } from '../schemas/order.schema';
+import { CreateOrderDto } from 'order/dto/create-order.dto';
+import { UpdateOrderDto } from 'order/dto/update-order.dto';
+import { OrderStatus } from 'order/enums/order.enum';
+import { Order } from 'order/schemas/order.schema';
 
 export interface IOrderController {
   order(id: Types.ObjectId): Promise<Order>;
