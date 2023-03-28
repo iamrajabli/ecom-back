@@ -1,3 +1,4 @@
+import { EmailService } from '@/email/email.service';
 import {
   HttpException,
   HttpStatus,
@@ -7,9 +8,10 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { InjectModel } from '@nestjs/mongoose';
 import { genSalt, hash, compare } from 'bcrypt';
-import { Document, Model, ObjectId } from 'mongoose';
+import { Document, Model, ObjectId, Types } from 'mongoose';
 import { AuthUserDto } from './dto/auth-user.dto';
 import { CreateUserDto } from './dto/create-user.dto';
+import { ResetUserDto } from './dto/reset-user.dto';
 import { Role } from './enums/role.enum';
 import { IAuthService } from './interfaces/auth.service.interface';
 import { User, UserDocument } from './schemas/user.schema';
@@ -19,6 +21,7 @@ export class AuthService implements IAuthService {
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
     private readonly jwtService: JwtService,
+    private readonly emailService: EmailService,
   ) {}
 
   async auth(dto: AuthUserDto) {
@@ -146,19 +149,93 @@ export class AuthService implements IAuthService {
 
   async generateNewTokens(refreshToken: string) {
     try {
-      const result = (await this.jwtService.verifyAsync(
-        refreshToken,
-      )) as Record<'id', ObjectId>;
-
-      if (!result) {
-        throw new UnauthorizedException('Invalid credentials');
-      }
+      const result = await this.verifyToken(refreshToken);
 
       const user = await this.userModel.findById(result.id);
       return {
         user: this.generateAuthFields(user),
         tokens: this.generateTokens(user.id),
       };
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  async reset(login: string) {
+    try {
+      const user = await this.userModel.findOne({
+        $or: [{ email: login }, { username: login }],
+      });
+
+      if (!user) {
+        throw new HttpException('User not found.', HttpStatus.NOT_FOUND);
+      }
+
+      if (user.isDisabled) {
+        throw new HttpException(
+          'This account is disabled. Сontact with support.',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      const token = this.generateResetToken(login);
+
+      const link = 'http://ecom.com/token=' + token;
+
+      return await this.emailService.sendEmail(
+        user.email,
+        'Reset password for ' + user.name,
+        link,
+      );
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  async resetPassword(dto: ResetUserDto) {
+    try {
+      const result = await this.verifyToken(dto.token);
+
+      const salt = await genSalt(10);
+
+      await this.userModel.findOneAndUpdate(
+        {
+          $or: [{ email: result.login }, { username: result.login }],
+        },
+        {
+          $set: {
+            password: await hash(dto.password, salt),
+          },
+        },
+      );
+
+      return {
+        message: 'Password successfully changed.',
+        success: true,
+      };
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  generateResetToken(login: string) {
+    try {
+      const data = { login };
+
+      return this.jwtService.sign(data, { expiresIn: '30m' });
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  async verifyToken(token: string) {
+    try {
+      const result = (await this.jwtService.verifyAsync(token)) as Record<
+        'login' | 'id',
+        string | Types.ObjectId
+      >;
+
+      return result;
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }

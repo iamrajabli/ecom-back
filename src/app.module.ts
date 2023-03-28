@@ -11,6 +11,7 @@ import { WishlistModule } from './wishlist/wishlist.module';
 import { OrderModule } from './order/order.module';
 import { StatisticsModule } from './statistics/statistics.module';
 import { DiscountModule } from './discount/discount.module';
+import { EmailModule } from './email/email.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { DiscountModule } from './discount/discount.module';
     OrderModule,
     StatisticsModule,
     DiscountModule,
+    EmailModule,
   ],
   controllers: [],
   providers: [],
